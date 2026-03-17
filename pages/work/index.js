@@ -19,7 +19,7 @@ const Work = () => {
               animate="show"
               className="h2 xl:mt-12"
             >
-              My work <span className="text-accent">.</span>
+              Featured Engineering <span className="text-accent">.</span>
             </motion.h2>
             <motion.p
               variants={fadeIn("up", 0.4)}
@@ -27,8 +27,8 @@ const Work = () => {
               animate="show"
               className="mb-4 max-w-[400px] mx-auto lg:mx-0"
             >
-              Lorem ipsum dolor sit, amet consectetur adipisicing elit. Placeat
-              nostrum labore nisi harum voluptatum voluptate!
+              A curated selection of my technical builds, ranging from high-performance web applications to award-winning machine learning research. 
+              Each project highlights my focus on scalable architecture, cloud integration, and delivering seamless user experiences from the backend to the frontend.
             </motion.p>
           </div>
           {/* slider */}

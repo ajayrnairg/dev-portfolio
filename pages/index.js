@@ -18,19 +18,18 @@ const Home = () => {
             // exit="hidden"
             className="h1"
           >
-            Transforming Ideas <br /> Into{" "}
-            <span className="text-accent">Digital Reality</span>
+            Transforming Ideas Into{" "}<br />
+            <span className="text-accent">Scalable Architecture</span>
           </motion.h1>
           <motion.p
             variants={fadeIn("down", 0.3)}
             initial="hidden"
             animate="show"
             // exit="hidden"
-            className="max-w-sm xl:max-w-xl mx-auto xl:mx-0 mb-10 xl:mb-16"
+            className="max-w-sm xl:max-w-xl mx-auto xl:mx-0 mb-10 xl:mb-16 font-bold"
           >
-            Lorem ipsum dolor sit amet consectetur adipisicing elit. Accusantium
-            porro sint omnis. Impedit, deserunt architecto. Libero culpa
-            adipisci ipsum harum!
+            Full Stack Developer with 2.5+ years of experience bridging the gap between complex backend logic and intuitive user interfaces. 
+            Experienced in modernizing enterprise systems for stability and speed.
           </motion.p>
 
           <div className="flex justify-center xl:hidden relative">

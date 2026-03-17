@@ -9,12 +9,23 @@ import {
   FaReact,
   FaWordpress,
   FaFigma,
+  FaJava,
+  FaPython,
+  FaNodeJs,
+  FaPhp,
 } from "react-icons/fa";
 import {
   SiNextdotjs,
   SiFramer,
   SiAdobexd,
   SiAdobephotoshop,
+  SiTailwindcss,
+  SiSpringboot,
+  SiMicrosoftsqlserver,
+  SiMysql,
+  SiRabbitmq,
+  SiMicrosoftazure,
+  SiMongodb,
 } from "react-icons/si";
 
 import Avatar from "../../components/Avatar";
@@ -27,20 +38,33 @@ export const aboutData = [
     title: "skills",
     info: [
       {
-        title: "Web Development",
+        title: "Frontend & UI",
         icons: [
-          FaHtml5,
-          FaCss3,
-          FaJs,
-          FaReact,
-          SiNextdotjs,
-          SiFramer,
-          FaWordpress,
+          { icon: FaJs, title: "JavaScript" },
+          { icon: FaReact, title: "React" },
+          { icon: SiNextdotjs, title: "Next.js" },
+          { icon: FaCss3, title: "CSS3" }
         ],
       },
       {
-        title: "UI/UX Design",
-        icons: [FaFigma, SiAdobexd, SiAdobephotoshop],
+        title: "Backend & APIs",
+        icons: [
+          { icon: FaJava, title: "Java" },
+          { icon: SiSpringboot, title: "Spring Boot" },
+          { icon: FaPython, title: "Python" },
+          { icon: FaNodeJs, title: "Node.js" },
+          { icon: FaPhp, title: "PHP" }
+        ],
+      },
+      {
+        title: "Data & Cloud",
+        icons: [
+          { icon: SiMicrosoftsqlserver, title: "Microsoft SQL Server" },
+          { icon: SiMysql, title: "MySQL" },
+          { icon: SiMongodb, title: "MongoDB" },
+          { icon: SiRabbitmq, title: "RabbitMQ" },
+          { icon: SiMicrosoftazure, title: "Microsoft Azure" }
+        ],
       },
     ],
   },
@@ -48,12 +72,14 @@ export const aboutData = [
     title: "awards",
     info: [
       {
-        title: "Webby Awards - Honoree",
-        stage: "2011 - 2012",
+        title: "Microsoft AI for Earth Grant ($15,000 USD)",
+        stage: "2021 - 2022",
+        description: 'Awarded for an AI-based statistical analysis project on land-use plastic pollution.'
       },
       {
-        title: "Adobe Design Achievement Awards - Finalist",
-        stage: "2009 - 2010",
+        title: "Deep Blue Hackathon Winner - 1st Place",
+        stage: "2023",
+        description: 'Created a minutes of meeting generator inside MS Teams.'
       },
     ],
   },
@@ -61,33 +87,29 @@ export const aboutData = [
     title: "experience",
     info: [
       {
-        title: "UX/UI Designer - XYZ Company",
-        stage: "2012 - 2023",
-      },
-      {
-        title: "Web Developer - ABC Agency",
-        stage: "2010 - 2012",
-      },
-      {
-        title: "Intern - DEF Corporation",
-        stage: "2008 - 2010",
+        title: "Full Stack Software Developer | ISS-STOXX",
+        stage: "July 2023 - Present",
+        description: "Engineered the modernization of legacy Spring Boot and React architectures for enterprise climate applications. Optimized data ingestion pipelines for large-scale Parquet datasets, improving processing efficiency by 40%, and architected complex financial calculation engines."
       },
     ],
   },
   {
-    title: "credentials",
+    title: "certifications",
     info: [
       {
-        title: "Web Development - ABC University, LA, CA",
-        stage: "2011",
+        title: "B.E. Computer Engineering",
+        stage: 'University of Mumbai',
+        description: " Secured a First Class with Distinction, graduating in 2023 with a CGPA of 9.7/10.0, demonstrating consistent academic excellence and a strong foundation in computer engineering principles.",
       },
       {
-        title: "Computer Science Diploma - AV Technical Institute",
-        stage: "2009",
+        title: "Machine Learning Specialization",
+        stage: 'Coursera (Andrew Ng)',
+        description: " Covered supervised learning, unsupervised learning, and best practices in machine learning. Gained hands-on experience with algorithms like linear regression, logistic regression, neural networks, and support vector machines.",
       },
       {
-        title: "Certified Graphic Designer - ABC Institute, Los Angeles, CA",
-        stage: "2006",
+        title: "Python for Everybody",
+        stage: 'Coursera (University of Michigan)',
+        description: " Comprehensive introduction to Python programming, covering basics to advanced topics. Developed skills in data structures, web scraping, and working with databases using Python.",
       },
     ],
   },
@@ -106,21 +128,20 @@ const About = () => {
         animate="show"
         // exit="hidden"
         transition={{ duration: 1, ease: "easeInOut" }}
-        className="hidden xl:flex absolute bottom-12 left-[-85px] -ml-[100px] !scale-[2]"
+        className="hidden xl:flex absolute bottom-12 left-[-120px] -ml-[110px] !scale-[1.5]"
       >
         <Avatar />
       </motion.div>
       <div className="container mx-auto h-full flex flex-col items-center xl:flex-row gap-x-6">
         {/* text */}
-        <div className="flex-1 flex flex-col justify-center">
+        <div className="flex-1 flex flex-col justify-start pt-12 xl:pt-24">
           <motion.h2
             variants={fadeIn("right", 0.2)}
             initial="hidden"
             animate="show"
-            className="h2"
+            className="h2 mt-12 xl:mt-0"
           >
-            Captivating <span className="text-accent">stories</span> birth
-            magnificant designs.
+            <span className="text-accent">Robust architecture</span> drives scalable systems.
           </motion.h2>
 
           <motion.p
@@ -128,11 +149,11 @@ const About = () => {
             initial="hidden"
             animate="show"
             // exit="hidden"
-            className="max-w-[500px] mx-auto xl:mx-0 mb-6 xl:mb-12 px-2 xl:px-0 "
+            className="max-w-[500px] mx-auto xl:mx-0 mb-6 xl:mb-12 px-2 xl:px-0 font-medium"
           >
-            10 years ago, I began freelancing as a developer. Since then
-            I&apos;ve done remote work for agencies, consulted for startups, and
-            collaborated on digital products for business and consumer use.
+            Over the past 2.5+ years, my focus has been on engineering enterprise-grade solutions. 
+            At ISS-STOXX, I specialize in modernizing legacy architectures, optimizing high-volume data pipelines, and building seamless React interfaces for complex financial applications. 
+            I thrive at the intersection of backend stability and frontend performance, consistently delivering code that reduces technical debt and scales effortlessly.
           </motion.p>
           {/* counters */}
           <motion.div
@@ -146,7 +167,7 @@ const About = () => {
               {/* experience */}
               <div className="relative flex-1 after:w-[1px] after:h-full after:bg-white/10 after:absolute after:top-0 after:right-0">
                 <div className="text-2xl xl:text-4xl font-extrabold text-accent mb-2">
-                  <CountUp start={0} end={3} duration={5} /> +
+                  <CountUp decimal={"."} decimals={1} start={0} end={2.5} duration={5} /> +
                 </div>
                 <div className="text-xs uppercase tracking-[1px] leading-[1.4] max-w-[100px]">
                   Years of experience
@@ -164,10 +185,10 @@ const About = () => {
               {/* awards */}
               <div className="relative flex-1">
                 <div className="text-2xl xl:text-4xl font-extrabold text-accent mb-2">
-                  <CountUp start={0} end={5} duration={5} /> +
+                  <CountUp start={0} end={40} duration={5} suffix="%"/> +
                 </div>
                 <div className="text-xs uppercase tracking-[1px] leading-[1.4] max-w-[100px]">
-                  Awards Won
+                  Tech Debt Reduced
                 </div>
               </div>
             </div>
@@ -197,32 +218,44 @@ const About = () => {
               );
             })}
           </div>
-          <div className="py-2 xl:py-6 flex flex-col gap-y-2 xl:gap-y-4 items-center xl:items-start">
-            {aboutData[index].info.map((item, itemIndex) => {
-              return (
-                <div
-                  key={itemIndex}
-                  className="flex-1 flex flex-col md:flex-row max-w-max gap-x-2 items-center text-white/60"
-                >
-                  {/* title */}
-                  <div className="font-light mb-2 md:mb-0">{item.title}</div>
-                  <div className="hidden md:flex">=</div>
-                  <div>{item.stage}</div>
-                  {/* icons */}
-                  <div className="flex gap-x-4">
-                    {item.icons?.map?.((icon, iconIndex) => {
-                      let Icon = icon;
-                      return (
-                        <div className="text-2xl text-white" key={iconIndex}>
-                          <Icon />
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+          <div className="py-2 xl:py-6 flex flex-col gap-y-6 items-center xl:items-start">
+  {aboutData[index].info.map((item, itemIndex) => {
+    return (
+      <div
+        key={itemIndex}
+        /* Changed to flex-col and removed md:flex-row */
+        className="flex flex-col gap-y-2 text-white/60 w-full"
+      >
+        {/* Title: Now on its own line */}
+        <div className="font-bold text-white text-lg">
+          {item.title}
+        </div>
+
+        {/* Stage/Year */}
+        {item.stage && (
+          <div className="text-accent font-medium">{item.stage}</div>
+        )}
+
+        {/* Description: Now sits directly underneath */}
+        <div className="max-w-[600px] leading-normal">
+          {item.description}
+        </div>
+
+        {/* Icons */}
+        <div className="flex gap-x-4 mt-2">
+          {item.icons?.map?.((iconObj, iconIndex) => {
+            let Icon = iconObj.icon;
+            return (
+              <div className="text-2xl text-white" key={iconIndex} title={iconObj.title}>
+                <Icon/>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  })}
+</div>
         </motion.div>
       </div>
     </div>
