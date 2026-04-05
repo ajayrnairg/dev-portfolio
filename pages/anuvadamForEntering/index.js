@@ -17,7 +17,7 @@ const Login = () => {
   useEffect(() => {
     if (authService.isAuthenticated()) {
       // Redirect to admin dashboard if already logged in
-      window.location.href = "/admin";
+      window.location.href = "/adminKottaram";
     }
   }, []);
 

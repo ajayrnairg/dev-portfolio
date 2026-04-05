@@ -168,7 +168,7 @@ const AdminWork = () => {
             animate="show"
             className="flex items-center gap-4 mb-6"
           >
-            <Link href="/admin"  className="z-50">
+            <Link href="/adminKottaram"  className="z-50">
               <button className="text-white/70 hover:text-white transition-colors">
                 <FaArrowLeft className="text-xl" />
               </button>
