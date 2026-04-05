@@ -1,122 +1,149 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { fadeIn } from "../../variants";
-
-import {
-  FaHtml5,
-  FaCss3,
-  FaJs,
-  FaReact,
-  FaWordpress,
-  FaFigma,
-  FaJava,
-  FaPython,
-  FaNodeJs,
-  FaPhp,
-} from "react-icons/fa";
-import {
-  SiNextdotjs,
-  SiFramer,
-  SiAdobexd,
-  SiAdobephotoshop,
-  SiTailwindcss,
-  SiSpringboot,
-  SiMicrosoftsqlserver,
-  SiMysql,
-  SiRabbitmq,
-  SiMicrosoftazure,
-  SiMongodb,
-} from "react-icons/si";
 
 import Avatar from "../../components/Avatar";
 import Circles from "../../components/Circles";
 import CountUp from "react-countup";
+import { aboutService } from "../../services";
+import {
+  FaCss3,
+  FaJava,
+  FaJs,
+  FaNodeJs,
+  FaPhp,
+  FaPython,
+  FaReact,
+} from "react-icons/fa";
+import {
+  SiMicrosoftazure,
+  SiMicrosoftsqlserver,
+  SiMongodb,
+  SiMysql,
+  SiNextdotjs,
+  SiRabbitmq,
+  SiSpringboot,
+} from "react-icons/si";
 
-//  data
-export const aboutData = [
-  {
-    title: "skills",
-    info: [
-      {
-        title: "Frontend & UI",
-        icons: [
-          { icon: FaJs, title: "JavaScript" },
-          { icon: FaReact, title: "React" },
-          { icon: SiNextdotjs, title: "Next.js" },
-          { icon: FaCss3, title: "CSS3" }
-        ],
-      },
-      {
-        title: "Backend & APIs",
-        icons: [
-          { icon: FaJava, title: "Java" },
-          { icon: SiSpringboot, title: "Spring Boot" },
-          { icon: FaPython, title: "Python" },
-          { icon: FaNodeJs, title: "Node.js" },
-          { icon: FaPhp, title: "PHP" }
-        ],
-      },
-      {
-        title: "Data & Cloud",
-        icons: [
-          { icon: SiMicrosoftsqlserver, title: "Microsoft SQL Server" },
-          { icon: SiMysql, title: "MySQL" },
-          { icon: SiMongodb, title: "MongoDB" },
-          { icon: SiRabbitmq, title: "RabbitMQ" },
-          { icon: SiMicrosoftazure, title: "Microsoft Azure" }
-        ],
-      },
-    ],
-  },
-  {
-    title: "awards",
-    info: [
-      {
-        title: "Microsoft AI for Earth Grant ($15,000 USD)",
-        stage: "2021 - 2022",
-        description: 'Awarded for an AI-based statistical analysis project on land-use plastic pollution.'
-      },
-      {
-        title: "Deep Blue Hackathon Winner - 1st Place",
-        stage: "2023",
-        description: 'Created a minutes of meeting generator inside MS Teams.'
-      },
-    ],
-  },
-  {
-    title: "experience",
-    info: [
-      {
-        title: "Full Stack Software Developer | ISS-STOXX",
-        stage: "July 2023 - Present",
-        description: "Engineered the modernization of legacy Spring Boot and React architectures for enterprise climate applications. Optimized data ingestion pipelines for large-scale Parquet datasets, improving processing efficiency by 40%, and architected complex financial calculation engines."
-      },
-    ],
-  },
-  {
-    title: "certifications",
-    info: [
-      {
-        title: "B.E. Computer Engineering",
-        stage: 'University of Mumbai',
-        description: " Secured a First Class with Distinction, graduating in 2023 with a CGPA of 9.7/10.0, demonstrating consistent academic excellence and a strong foundation in computer engineering principles.",
-      },
-      {
-        title: "Machine Learning Specialization",
-        stage: 'Coursera (Andrew Ng)',
-        description: " Covered supervised learning, unsupervised learning, and best practices in machine learning. Gained hands-on experience with algorithms like linear regression, logistic regression, neural networks, and support vector machines.",
-      },
-      {
-        title: "Python for Everybody",
-        stage: 'Coursera (University of Michigan)',
-        description: " Comprehensive introduction to Python programming, covering basics to advanced topics. Developed skills in data structures, web scraping, and working with databases using Python.",
-      },
-    ],
-  },
-];
+const iconMap = {
+  FaJs: FaJs,
+  FaReact: FaReact,
+  SiNextdotjs: SiNextdotjs,
+  FaJava: FaJava,
+  SiSpringboot: SiSpringboot,
+  FaPython: FaPython,
+  FaNodeJs: FaNodeJs,
+  FaPhp: FaPhp,
+  SiMysql: SiMysql,
+  SiMongodb: SiMongodb,
+  SiMicrosoftazure: SiMicrosoftazure,
+  FaCss3: FaCss3,
+  SiMicrosoftsqlserver: SiMicrosoftsqlserver,
+  SiRabbitmq: SiRabbitmq,
+};
 
 const About = () => {
   const [index, setIndex] = useState(0);
+  const [aboutData, setAboutData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // Fallback about structure
+  const fallbackAboutData = {
+    leftSection: {
+      title: "About Me",
+      description:
+        "Over the past 2.5+ years, my focus has been on engineering enterprise-grade solutions. At ISS-STOXX, I specialize in modernizing legacy architectures, optimizing high-volume data pipelines, and building seamless React interfaces for complex financial applications.",
+      yearsExperience: "2.5+",
+      projectsCompleted: "10+",
+      techDebtReduced: "40%",
+    },
+    tabs: [
+      {
+        title: "skills",
+        info: [
+          {
+            title: "Frontend & UI",
+            icons: ["JS", "React", "Next.js", "CSS3"],
+          },
+          {
+            title: "Backend & APIs",
+            icons: ["Java", "Spring Boot", "Python", "Node.js", "PHP"],
+          },
+          {
+            title: "Data & Cloud",
+            icons: [
+              "SQL Server",
+              "MySQL",
+              "MongoDB",
+              "RabbitMQ",
+              "Microsoft Azure",
+            ],
+          },
+        ],
+      },
+      {
+        title: "experience",
+        info: [
+          {
+            title: "Full Stack Software Developer | ISS-STOXX",
+            stage: "July 2023 - Present",
+            description:
+              "Engineered the modernization of legacy Spring Boot and React architectures for enterprise climate applications.",
+          },
+        ],
+      },
+      {
+        title: "awards",
+        info: [
+          {
+            title: "Microsoft AI for Earth Grant ($15,000 USD)",
+            stage: "2021 - 2022",
+            description:
+              "Awarded for an AI-based statistical analysis project on land-use plastic pollution.",
+          },
+        ],
+      },
+      {
+        title: "certifications",
+        info: [
+          {
+            title: "B.E. Computer Engineering",
+            stage: "University of Mumbai",
+            description:
+              "Secured a First Class with Distinction, graduating in 2023 with a CGPA of 9.7/10.0.",
+          },
+        ],
+      },
+    ],
+  };
+
+  useEffect(() => {
+    const fetchAbout = async () => {
+      try {
+        const data = await aboutService.getAbout();
+        setAboutData(data);
+        setError(null);
+      } catch (err) {
+        console.error("Failed to fetch about data:", err);
+        setAboutData(fallbackAboutData);
+        setError(true);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAbout();
+  }, []);
+
+  const data = aboutData || fallbackAboutData;
+  const leftSection = data.leftSection || fallbackAboutData.leftSection;
+  const tabs = data.tabs || fallbackAboutData.tabs;
+
+  // Get numeric values, defaulting to fallback values
+  const yearsExp = parseFloat(leftSection.yearsExperience) || 2.5;
+  const projects = parseInt(leftSection.projectsCompleted) || 10;
+  const techDebt = parseInt(leftSection.techDebtReduced) || 40;
 
   return (
     <div className="h-full bg-primary/30 py-32 text-center xl:text-left overflow-visible">
@@ -126,7 +153,6 @@ const About = () => {
         variants={fadeIn("right", 0.2)}
         initial="hidden"
         animate="show"
-        // exit="hidden"
         transition={{ duration: 1, ease: "easeInOut" }}
         className="hidden xl:flex absolute bottom-12 left-[-120px] -ml-[110px] !scale-[1.5]"
       >
@@ -141,33 +167,49 @@ const About = () => {
             animate="show"
             className="h2 mt-12 xl:mt-0"
           >
-            <span className="text-accent">Robust architecture</span> drives scalable systems.
+            <span className="text-accent">Robust architecture</span> drives
+            scalable systems.
           </motion.h2>
 
           <motion.p
             variants={fadeIn("right", 0.4)}
             initial="hidden"
             animate="show"
-            // exit="hidden"
             className="max-w-[500px] mx-auto xl:mx-0 mb-6 xl:mb-12 px-2 xl:px-0 font-medium"
           >
-            Over the past 2.5+ years, my focus has been on engineering enterprise-grade solutions. 
-            At ISS-STOXX, I specialize in modernizing legacy architectures, optimizing high-volume data pipelines, and building seamless React interfaces for complex financial applications. 
-            I thrive at the intersection of backend stability and frontend performance, consistently delivering code that reduces technical debt and scales effortlessly.
+            {leftSection.description}
           </motion.p>
+
+          {error && (
+            <motion.div
+              variants={fadeIn("right", 0.5)}
+              initial="hidden"
+              animate="show"
+              className="max-w-[500px] mx-auto xl:mx-0 mb-6 p-3 bg-yellow-500/20 border border-yellow-500 rounded text-yellow-400 text-sm"
+            >
+              Note: Using cached data - please refresh to get latest from API
+            </motion.div>
+          )}
+
           {/* counters */}
           <motion.div
             variants={fadeIn("right", 0.6)}
             initial="hidden"
             animate="show"
-            // exit="hidden"
             className="md:max-w-xl xl:max-w-none mx-auto xl:mx-0 mb-8"
           >
             <div className="flex flex-1 xl:gap-x-6">
               {/* experience */}
               <div className="relative flex-1 after:w-[1px] after:h-full after:bg-white/10 after:absolute after:top-0 after:right-0">
                 <div className="text-2xl xl:text-4xl font-extrabold text-accent mb-2">
-                  <CountUp decimal={"."} decimals={1} start={0} end={2.5} duration={5} /> +
+                  <CountUp
+                    decimal={"."}
+                    decimals={1}
+                    start={0}
+                    end={yearsExp}
+                    duration={5}
+                  />{" "}
+                  +
                 </div>
                 <div className="text-xs uppercase tracking-[1px] leading-[1.4] max-w-[100px]">
                   Years of experience
@@ -176,7 +218,7 @@ const About = () => {
               {/* projects */}
               <div className="relative flex-1 after:w-[1px] after:h-full after:bg-white/10 after:absolute after:top-0 after:right-0">
                 <div className="text-2xl xl:text-4xl font-extrabold text-accent mb-2">
-                  <CountUp start={0} end={10} duration={5} /> +
+                  <CountUp start={0} end={projects} duration={5} /> +
                 </div>
                 <div className="text-xs uppercase tracking-[1px] leading-[1.4] max-w-[100px]">
                   Projects
@@ -185,7 +227,7 @@ const About = () => {
               {/* awards */}
               <div className="relative flex-1">
                 <div className="text-2xl xl:text-4xl font-extrabold text-accent mb-2">
-                  <CountUp start={0} end={40} duration={5} suffix="%"/> +
+                  <CountUp start={0} end={techDebt} duration={5} suffix="%" /> +
                 </div>
                 <div className="text-xs uppercase tracking-[1px] leading-[1.4] max-w-[100px]">
                   Tech Debt Reduced
@@ -194,16 +236,16 @@ const About = () => {
             </div>
           </motion.div>
         </div>
+
         {/* info */}
         <motion.div
           variants={fadeIn("left", 0.4)}
           initial="hidden"
           animate="show"
-          // exit="hidden"
           className="flex flex-col w-full xl:max-w-[48%] h-[480px]"
         >
           <div className="flex gap-x-4 xl:gap-x-8 mx-auto xl:mx-0 mb-4">
-            {aboutData.map((item, itemIndex) => {
+            {tabs.map((item, itemIndex) => {
               return (
                 <div
                   key={itemIndex}
@@ -218,44 +260,57 @@ const About = () => {
               );
             })}
           </div>
-          <div className="py-2 xl:py-6 flex flex-col gap-y-6 items-center xl:items-start">
-  {aboutData[index].info.map((item, itemIndex) => {
-    return (
-      <div
-        key={itemIndex}
-        /* Changed to flex-col and removed md:flex-row */
-        className="flex flex-col gap-y-2 text-white/60 w-full"
-      >
-        {/* Title: Now on its own line */}
-        <div className="font-bold text-white text-lg">
-          {item.title}
-        </div>
+          <div className="py-2 xl:py-6 flex flex-col gap-y-6 items-center xl:items-start overflow-y-auto max-h-[400px]">
+            {tabs[index]?.info.map((item, itemIndex) => {
+              return (
+                <div
+                  key={itemIndex}
+                  className="flex flex-col gap-y-2 text-white/60 w-full"
+                >
+                  {/* Title */}
+                  <div className="font-bold text-white text-lg">
+                    {item.title}
+                  </div>
 
-        {/* Stage/Year */}
-        {item.stage && (
-          <div className="text-accent font-medium">{item.stage}</div>
-        )}
+                  {/* Stage/Date */}
+                  {item.stage && (
+                    <div className="text-sm text-accent">{item.stage}</div>
+                  )}
 
-        {/* Description: Now sits directly underneath */}
-        <div className="max-w-[600px] leading-normal">
-          {item.description}
-        </div>
+                  {/* Description or Icons/Tags */}
+                  {item.description ? (
+                    <div className="text-sm">{item.description}</div>
+                  ) : item.icons ? (
+                    <div className="flex flex-wrap gap-4 mt-2">
+                      {item.icons.map((iconObj, idx) => {
+                        // Look up the component in our map using the string from the API
+                        const IconComponent =
+                          typeof iconObj.icon === "string"
+                            ? iconMap[iconObj.icon]
+                            : iconObj.icon;
 
-        {/* Icons */}
-        <div className="flex gap-x-4 mt-2">
-          {item.icons?.map?.((iconObj, iconIndex) => {
-            let Icon = iconObj.icon;
-            return (
-              <div className="text-2xl text-white" key={iconIndex} title={iconObj.title}>
-                <Icon/>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-    );
-  })}
-</div>
+                        return (
+                          <div
+                            key={idx}
+                            className="flex flex-col items-center gap-y-1"
+                          >
+                            <div className="text-2xl text-white">
+                              {/* Render the component if found, otherwise show nothing */}
+                              {IconComponent ? <IconComponent /> : null}
+                            </div>
+                            {/* Optional: Show the title under the icon like your backup */}
+                            <span className="text-[10px] text-accent uppercase tracking-wider">
+                              {iconObj.title}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : null}
+                </div>
+              );
+            })}
+          </div>
         </motion.div>
       </div>
     </div>
