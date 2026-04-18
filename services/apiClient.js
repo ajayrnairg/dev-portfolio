@@ -1,8 +1,8 @@
 import axios from 'axios';
 import loadingService from './loadingService';
 
-// const BASE_URL = 'https://portfolio-backend-fsqx.onrender.com';
-const BASE_URL = 'http://localhost:8080';
+const BASE_URL = 'https://portfolio-backend-fsqx.onrender.com';
+// const BASE_URL = 'http://localhost:8080';
 
 // Create axios instance
 const apiClient = axios.create({
