@@ -14,6 +14,19 @@ const workService = {
       throw error;
     }
   },
+
+  /**
+   * Get formatted projects list
+   */
+  getProjects: async () => {
+    try {
+      const response = await apiClient.get('/api/v1/work');
+      return response.data.projects || [];
+    } catch (error) {
+      console.error('Failed to fetch projects:', error);
+      throw error;
+    }
+  },
 };
 
 export default workService;

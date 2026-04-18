@@ -2,9 +2,9 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { fadeIn } from "../../variants";
 import Circles from "../../components/Circles";
-import { authService, contactService, adminService } from "../../services";
+import { authService, profileService, adminService } from "../../services";
 import Link from "next/link";
-import { FaArrowLeft, FaSave, FaEye, FaEnvelope, FaPhone, FaMapMarkerAlt, FaTrash } from "react-icons/fa";
+import { FaArrowLeft, FaSave, FaEye, FaEnvelope, FaTrash, FaCheckSquare } from "react-icons/fa";
 
 const AdminContact = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -12,15 +12,14 @@ const AdminContact = () => {
   const [saving, setSaving] = useState(false);
   const [contactData, setContactData] = useState({
     email: "",
-    phone: "",
-    address: "",
-    socialLinks: {
-      linkedin: "",
-      github: "",
-      twitter: "",
-    },
+    linkedinUrl: "",
+    githubUrl: "",
+    youtubeUrl: "",
+    instagramUrl: "",
+    facebookUrl: "",
   });
   const [submissions, setSubmissions] = useState([]);
+  const [selectedSubmissions, setSelectedSubmissions] = useState([]);
   const [originalData, setOriginalData] = useState({});
   const [message, setMessage] = useState({ type: "", text: "" });
   const [activeTab, setActiveTab] = useState("info"); // "info" or "submissions"
@@ -39,9 +38,17 @@ const AdminContact = () => {
 
   const loadContactData = async () => {
     try {
-      const data = await contactService.getContact();
-      setContactData(data);
-      setOriginalData(data);
+      const data = await profileService.getProfile();
+      const mappedData = {
+        email: data.email || "",
+        linkedinUrl: data.linkedinUrl || "",
+        githubUrl: data.githubUrl || "",
+        youtubeUrl: data.youtubeUrl || "",
+        instagramUrl: data.instagramUrl || "",
+        facebookUrl: data.facebookUrl || "",
+      };
+      setContactData(mappedData);
+      setOriginalData(mappedData);
     } catch (error) {
       console.error("Failed to load contact data:", error);
       setMessage({ type: "error", text: "Failed to load contact data" });
@@ -53,7 +60,8 @@ const AdminContact = () => {
   const loadSubmissions = async () => {
     try {
       const data = await adminService.getContactSubmissions();
-      setSubmissions(data);
+      setSubmissions(data || []);
+      setSelectedSubmissions([]);
     } catch (error) {
       console.error("Failed to load submissions:", error);
     }
@@ -61,21 +69,10 @@ const AdminContact = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    if (name.includes(".")) {
-      const [parent, child] = name.split(".");
-      setContactData((prev) => ({
-        ...prev,
-        [parent]: {
-          ...prev[parent],
-          [child]: value,
-        },
-      }));
-    } else {
-      setContactData((prev) => ({
-        ...prev,
-        [name]: value,
-      }));
-    }
+    setContactData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   };
 
   const handleSave = async () => {
@@ -105,7 +102,7 @@ const AdminContact = () => {
     }
 
     try {
-      await adminService.deleteContactSubmission(submissionId);
+      await adminService.bulkDeleteContactSubmissions([submissionId]);
       setMessage({ type: "success", text: "Submission deleted successfully!" });
       await loadSubmissions();
 
@@ -115,6 +112,40 @@ const AdminContact = () => {
     } catch (error) {
       console.error("Failed to delete submission:", error);
       setMessage({ type: "error", text: "Failed to delete submission. Please try again." });
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedSubmissions.length === 0) return;
+    if (!confirm(`Are you sure you want to delete ${selectedSubmissions.length} submissions?`)) {
+      return;
+    }
+
+    try {
+      await adminService.bulkDeleteContactSubmissions(selectedSubmissions);
+      setMessage({ type: "success", text: "Selected submissions deleted completely!" });
+      await loadSubmissions();
+
+      setTimeout(() => {
+        setMessage({ type: "", text: "" });
+      }, 3000);
+    } catch (error) {
+      console.error("Failed to bulk delete:", error);
+      setMessage({ type: "error", text: "Bulk deletion failed." });
+    }
+  };
+
+  const toggleSelection = (id) => {
+    setSelectedSubmissions((prev) => 
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+    );
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedSubmissions.length === submissions.length) {
+      setSelectedSubmissions([]);
+    } else {
+      setSelectedSubmissions(submissions.map((s) => s.id));
     }
   };
 
@@ -262,82 +293,67 @@ const AdminContact = () => {
                   />
                 </div>
 
-                {/* Phone Field */}
-                <div className="flex flex-col">
-                  <label
-                    htmlFor="phone"
-                    className="text-white/80 text-sm mb-2 font-medium flex items-center gap-2"
-                  >
-                    <FaPhone className="text-sm" />
-                    Phone
-                  </label>
-                  <input
-                    type="tel"
-                    id="phone"
-                    name="phone"
-                    value={contactData.phone}
-                    onChange={handleInputChange}
-                    className="bg-black/40 border border-white/20 rounded-lg px-4 py-3 text-white placeholder-white/50 focus:outline-none focus:border-accent transition-colors"
-                    placeholder="+1 (555) 123-4567"
-                  />
-                </div>
-
-                {/* Address Field */}
-                <div className="flex flex-col">
-                  <label
-                    htmlFor="address"
-                    className="text-white/80 text-sm mb-2 font-medium flex items-center gap-2"
-                  >
-                    <FaMapMarkerAlt className="text-sm" />
-                    Address
-                  </label>
-                  <textarea
-                    id="address"
-                    name="address"
-                    value={contactData.address}
-                    onChange={handleInputChange}
-                    rows={3}
-                    className="bg-black/40 border border-white/20 rounded-lg px-4 py-3 text-white placeholder-white/50 focus:outline-none focus:border-accent transition-colors resize-none"
-                    placeholder="Your city, country"
-                  />
-                </div>
-
-                {/* Social Links */}
+                {/* Social Media & Contact Links */}
                 <div className="flex flex-col">
                   <label className="text-white/80 text-sm mb-2 font-medium">
-                    Social Links
+                    Social Media & Contact Links
                   </label>
 
-                  {/* LinkedIn */}
                   <input
                     type="url"
-                    name="socialLinks.linkedin"
-                    value={contactData.socialLinks?.linkedin || ""}
+                    name="linkedinUrl"
+                    value={contactData.linkedinUrl || ""}
                     onChange={handleInputChange}
                     className="bg-black/40 border border-white/20 rounded-lg px-4 py-3 text-white placeholder-white/50 focus:outline-none focus:border-accent transition-colors mb-3"
                     placeholder="LinkedIn URL"
                   />
 
-                  {/* GitHub */}
                   <input
                     type="url"
-                    name="socialLinks.github"
-                    value={contactData.socialLinks?.github || ""}
+                    name="githubUrl"
+                    value={contactData.githubUrl || ""}
                     onChange={handleInputChange}
                     className="bg-black/40 border border-white/20 rounded-lg px-4 py-3 text-white placeholder-white/50 focus:outline-none focus:border-accent transition-colors mb-3"
                     placeholder="GitHub URL"
                   />
 
-                  {/* Twitter */}
                   <input
                     type="url"
-                    name="socialLinks.twitter"
-                    value={contactData.socialLinks?.twitter || ""}
+                    name="twitterUrl"
+                    value={contactData.twitterUrl || ""}
                     onChange={handleInputChange}
-                    className="bg-black/40 border border-white/20 rounded-lg px-4 py-3 text-white placeholder-white/50 focus:outline-none focus:border-accent transition-colors"
-                    placeholder="Twitter URL"
+                    className="bg-black/40 border border-white/20 rounded-lg px-4 py-3 text-white placeholder-white/50 focus:outline-none focus:border-accent transition-colors mb-3"
+                    placeholder="Twitter URL (Optional)"
+                  />
+
+                  <input
+                    type="url"
+                    name="facebookUrl"
+                    value={contactData.facebookUrl || ""}
+                    onChange={handleInputChange}
+                    className="bg-black/40 border border-white/20 rounded-lg px-4 py-3 text-white placeholder-white/50 focus:outline-none focus:border-accent transition-colors mb-3"
+                    placeholder="Facebook URL"
+                  />
+
+                  <input
+                    type="url"
+                    name="youtubeUrl"
+                    value={contactData.youtubeUrl || ""}
+                    onChange={handleInputChange}
+                    className="bg-black/40 border border-white/20 rounded-lg px-4 py-3 text-white placeholder-white/50 focus:outline-none focus:border-accent transition-colors mb-3"
+                    placeholder="YouTube URL"
+                  />
+
+                  <input
+                    type="url"
+                    name="instagramUrl"
+                    value={contactData.instagramUrl || ""}
+                    onChange={handleInputChange}
+                    className="bg-black/40 border border-white/20 rounded-lg px-4 py-3 text-white placeholder-white/50 focus:outline-none focus:border-accent transition-colors mb-3"
+                    placeholder="Instagram URL"
                   />
                 </div>
+
 
                 {/* Save Button */}
                 <button
@@ -362,9 +378,33 @@ const AdminContact = () => {
             ) : (
               /* Submissions List */
               <div>
-                <h3 className="text-xl font-semibold text-white mb-4">
-                  Contact Form Submissions ({submissions.length})
-                </h3>
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-xl font-semibold text-white">
+                    Form Submissions ({submissions.length})
+                  </h3>
+                  
+                  {submissions.length > 0 && (
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={toggleSelectAll}
+                        className="bg-white/10 hover:bg-white/20 px-3 py-1 rounded text-sm transition-colors text-white flex items-center gap-2"
+                      >
+                        <FaCheckSquare /> {selectedSubmissions.length === submissions.length ? "Deselect All" : "Select All"}
+                      </button>
+                      
+                      {selectedSubmissions.length > 0 && (
+                        <button
+                          type="button"
+                          onClick={handleBulkDelete}
+                          className="bg-red-500/80 hover:bg-red-500 px-3 py-1 rounded text-sm transition-colors text-white flex items-center gap-2"
+                        >
+                          <FaTrash /> Delete ({selectedSubmissions.length})
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
 
                 {submissions.length === 0 ? (
                   <div className="text-white/60 text-center py-8">
@@ -375,31 +415,42 @@ const AdminContact = () => {
                     {submissions.map((submission) => (
                       <div
                         key={submission.id}
-                        className="bg-black/30 rounded-lg p-4 border border-white/10"
+                        className="bg-black/30 rounded-lg p-4 border border-white/10 flex gap-4"
                       >
-                        <div className="flex items-start justify-between mb-3">
-                          <div>
-                            <h4 className="text-white font-medium">
-                              {submission.name}
-                            </h4>
-                            <p className="text-accent text-sm">{submission.email}</p>
-                            <p className="text-white/50 text-xs">
-                              {new Date(submission.createdAt).toLocaleDateString()}
-                            </p>
+                        <div className="pt-1 flex items-center justify-center">
+                          <input
+                            type="checkbox"
+                            checked={selectedSubmissions.includes(submission.id)}
+                            onChange={() => toggleSelection(submission.id)}
+                            className="w-5 h-5 rounded cursor-pointer border-2 border-white/50 text-accent focus:ring-accent accent-accent transition-all"
+                            style={{ accentColor: '#f13024' }}
+                          />
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-start justify-between mb-3">
+                            <div>
+                              <h4 className="text-white font-medium">
+                                {submission.name}
+                              </h4>
+                              <p className="text-accent text-sm">{submission.email}</p>
+                              <p className="text-white/50 text-xs">
+                                {new Date(submission.createdAt).toLocaleDateString()}
+                              </p>
+                            </div>
+                            <button
+                              onClick={() => handleDeleteSubmission(submission.id)}
+                              className="text-red-400 hover:text-red-300 transition-colors p-2"
+                            >
+                              <FaTrash />
+                            </button>
                           </div>
-                          <button
-                            onClick={() => handleDeleteSubmission(submission.id)}
-                            className="text-red-400 hover:text-red-300 transition-colors p-2"
-                          >
-                            <FaTrash />
-                          </button>
-                        </div>
-                        <div className="text-white/80 text-sm">
-                          <strong>Subject:</strong> {submission.subject}
-                        </div>
-                        <div className="text-white/70 text-sm mt-2">
-                          <strong>Message:</strong>
-                          <p className="mt-1 whitespace-pre-wrap">{submission.message}</p>
+                          <div className="text-white/80 text-sm">
+                            <strong>Subject:</strong> {submission.subject}
+                          </div>
+                          <div className="text-white/70 text-sm mt-2">
+                            <strong>Message:</strong>
+                            <p className="mt-1 whitespace-pre-wrap">{submission.message}</p>
+                          </div>
                         </div>
                       </div>
                     ))}

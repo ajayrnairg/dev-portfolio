@@ -91,6 +91,41 @@ const AdminAbout = () => {
     }));
   };
 
+  const addSkillToCategory = (categoryIndex) => {
+    setAboutData((prev) => {
+      const newSkills = [...prev.skills];
+      const category = { ...newSkills[categoryIndex] };
+      const icons = category.icons ? [...category.icons] : [];
+      icons.push({ title: "", icon: "" });
+      category.icons = icons;
+      newSkills[categoryIndex] = category;
+      return { ...prev, skills: newSkills };
+    });
+  };
+
+  const handleSkillChange = (categoryIndex, skillIndex, field, value) => {
+    setAboutData((prev) => {
+      const newSkills = [...prev.skills];
+      const category = { ...newSkills[categoryIndex] };
+      const icons = [...category.icons];
+      icons[skillIndex] = { ...icons[skillIndex], [field]: value };
+      category.icons = icons;
+      newSkills[categoryIndex] = category;
+      return { ...prev, skills: newSkills };
+    });
+  };
+
+  const removeSkillFromCategory = (categoryIndex, skillIndex) => {
+    setAboutData((prev) => {
+      const newSkills = [...prev.skills];
+      const category = { ...newSkills[categoryIndex] };
+      category.icons = category.icons.filter((_, i) => i !== skillIndex);
+      newSkills[categoryIndex] = category;
+      return { ...prev, skills: newSkills };
+    });
+  };
+
+
   const handleSave = async () => {
     setSaving(true);
     setMessage({ type: "", text: "" });
@@ -262,15 +297,95 @@ const AdminAbout = () => {
         }
       }
 
+      // 5. Handle skills changes
+      for (let i = 0; i < aboutData.skills.length; i++) {
+        const cat = aboutData.skills[i];
+        const origCat = originalData.skills?.[i];
+        let categoryId = cat.id || (origCat ? origCat.id : null);
+
+        if (!origCat) {
+          try {
+            const res = await adminService.addSkillCategory({ categoryName: cat.title });
+            successes.push(`Skill category "${cat.title}" added`);
+            categoryId = res.id;
+          } catch (error) {
+            errors.push(`Failed to add skill category "${cat.title}"`);
+          }
+        } else if (cat.title !== origCat.title) {
+          try {
+            await adminService.updateSkillCategory(categoryId, { categoryName: cat.title });
+            successes.push(`Skill category "${cat.title}" updated`);
+          } catch (error) {
+            errors.push(`Failed to update skill category "${cat.title}"`);
+          }
+        }
+
+        // Handle inner skills if categoryId exists
+        if (categoryId) {
+          const currentIcons = cat.icons || [];
+          const origIcons = origCat?.icons || [];
+
+          for (let j = 0; j < currentIcons.length; j++) {
+            const skill = currentIcons[j];
+            const origSkill = origIcons[j];
+
+            if (!origSkill) {
+              try {
+                await adminService.addSkill(categoryId, { skillName: skill.title, iconName: skill.icon });
+                successes.push(`Skill "${skill.title}" added`);
+              } catch (error) {
+                errors.push(`Failed to add skill "${skill.title}"`);
+              }
+            } else if (skill.title !== origSkill.title || skill.icon !== origSkill.icon) {
+              try {
+                await adminService.updateSkill(origSkill.id, { skillName: skill.title, iconName: skill.icon });
+                successes.push(`Skill "${skill.title}" updated`);
+              } catch (error) {
+                errors.push(`Failed to update skill "${skill.title}"`);
+              }
+            }
+          }
+
+          // Delete removed skills
+          for (let j = currentIcons.length; j < origIcons.length; j++) {
+            const origSkill = origIcons[j];
+            if (origSkill?.id) {
+              try {
+                await adminService.deleteSkill(origSkill.id);
+                successes.push(`Skill "${origSkill.title}" deleted`);
+              } catch (error) {
+                errors.push(`Failed to delete skill "${origSkill.title}"`);
+              }
+            }
+          }
+        }
+      }
+
+      // Delete removed categories
+      for (let i = aboutData.skills.length; i < (originalData.skills?.length || 0); i++) {
+        const origCat = originalData.skills[i];
+        if (origCat?.id) {
+          try {
+            await adminService.deleteSkillCategory(origCat.id);
+            successes.push(`Skill category "${origCat.title}" deleted`);
+          } catch (error) {
+            errors.push(`Failed to delete skill category "${origCat.title}"`);
+          }
+        }
+      }
+
       // Set final message
       if (errors.length === 0 && successes.length > 0) {
         setMessage({ type: "success", text: "All changes saved successfully!" });
-        setOriginalData(JSON.parse(JSON.stringify(aboutData)));
+        await loadAboutData();
       } else if (errors.length > 0) {
         setMessage({ 
           type: "error", 
           text: `${errors.length} error(s) occurred: ${errors.join(", ")}` 
         });
+        if (successes.length > 0) await loadAboutData();
+      } else if (successes.length > 0) {
+        await loadAboutData();
       }
 
       setTimeout(() => {
@@ -467,38 +582,85 @@ const AdminAbout = () => {
                 />
               </div>
 
-              {/* Skills Section (Read-Only) */}
+              {/* Skills Section */}
               <div className="flex flex-col">
                 <div className="flex items-center justify-between mb-2">
                   <label className="text-white/80 text-sm font-medium">
-                    Skills Categories (View Only)
+                    Skills Categories
                   </label>
+                  <button
+                    type="button"
+                    onClick={() => addArrayItem("skills", { title: "", icons: [] })}
+                    className="text-accent hover:text-white transition-colors"
+                  >
+                    <FaPlus className="text-sm" />
+                  </button>
                 </div>
-                <div className="text-white/60 text-xs mb-3">
-                  ℹ️ Skills are managed separately. Update them through your backend.
-                </div>
-                <div className="space-y-3 max-h-40 overflow-y-auto bg-black/20 rounded-lg p-3">
-                  {aboutData.skills.length === 0 ? (
-                    <div className="text-white/40 text-sm">No skills loaded</div>
-                  ) : (
-                    aboutData.skills.map((skillCategory, index) => (
-                      <div key={index} className="bg-black/30 rounded p-2 text-sm">
-                        <div className="text-white font-medium mb-1">
-                          {skillCategory.title}
-                        </div>
-                        <div className="flex flex-wrap gap-1">
-                          {skillCategory.icons?.map((icon, iconIndex) => (
-                            <span
-                              key={iconIndex}
-                              className="bg-accent/20 text-accent text-xs px-2 py-1 rounded"
-                            >
-                              {icon.title}
-                            </span>
-                          ))}
-                        </div>
+                <div className="space-y-3 max-h-60 overflow-y-auto">
+                  {aboutData.skills.map((skillCategory, categoryIndex) => (
+                    <div key={categoryIndex} className="bg-black/20 rounded-lg p-3">
+                      <div className="flex items-center gap-2 mb-2">
+                        <input
+                          type="text"
+                          value={skillCategory.title}
+                          onChange={(e) =>
+                            handleArrayItemChange("skills", categoryIndex, "title", e.target.value)
+                          }
+                          className="flex-1 bg-black/40 border border-white/20 rounded px-3 py-2 text-white placeholder-white/50 focus:outline-none focus:border-accent transition-colors text-sm font-medium"
+                          placeholder="Category Title (e.g. Frontend)"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => removeArrayItem("skills", categoryIndex)}
+                          className="text-red-400 hover:text-red-300 transition-colors"
+                        >
+                          <FaTrash className="text-sm" />
+                        </button>
                       </div>
-                    ))
-                  )}
+                      
+                      <div className="pl-4 border-l border-white/10 space-y-2 mt-3">
+                        <div className="flex items-center justify-between">
+                          <span className="text-white/60 text-xs">Skills in Category</span>
+                          <button
+                            type="button"
+                            onClick={() => addSkillToCategory(categoryIndex)}
+                            className="text-accent hover:text-white transition-colors text-xs flex items-center gap-1"
+                          >
+                            <FaPlus /> Add Skill
+                          </button>
+                        </div>
+                        {skillCategory.icons?.map((icon, skillIndex) => (
+                          <div key={skillIndex} className="flex items-center gap-2">
+                            <input
+                              type="text"
+                              value={icon.title}
+                              onChange={(e) =>
+                                handleSkillChange(categoryIndex, skillIndex, "title", e.target.value)
+                              }
+                              className="w-1/2 bg-black/40 border border-white/20 rounded px-2 py-1 text-white placeholder-white/50 focus:outline-none focus:border-accent transition-colors text-xs"
+                              placeholder="Skill Name (e.g. React)"
+                            />
+                            <input
+                              type="text"
+                              value={icon.icon || ""}
+                              onChange={(e) =>
+                                handleSkillChange(categoryIndex, skillIndex, "icon", e.target.value)
+                              }
+                              className="w-1/3 bg-black/40 border border-white/20 rounded px-2 py-1 text-white placeholder-white/50 focus:outline-none focus:border-accent transition-colors text-xs"
+                              placeholder="Icon SVG/Class"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => removeSkillFromCategory(categoryIndex, skillIndex)}
+                              className="text-red-400 hover:text-red-300 transition-colors ml-auto"
+                            >
+                              <FaTrash className="text-xs" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
 

@@ -99,19 +99,11 @@ const adminService = {
    */
   updateExperience: async (id, experienceData) => {
     try {
-      // Try to update if endpoint exists, otherwise delete and recreate
       const response = await apiClient.put(`/api/v1/admin/experience/${id}`, experienceData);
       return response.data;
     } catch (error) {
-      // Fallback: delete and recreate
-      console.warn('Update endpoint not available, using delete + create fallback');
-      try {
-        await apiClient.delete(`/api/v1/admin/experience/${id}`);
-        return await adminService.addExperience(experienceData);
-      } catch (fallbackError) {
-        console.error('Failed to update experience:', error);
-        throw error;
-      }
+      console.error('Failed to update experience:', error);
+      throw error;
     }
   },
 
@@ -221,15 +213,8 @@ const adminService = {
       const response = await apiClient.put(`/api/v1/admin/awards/${id}`, awardData);
       return response.data;
     } catch (error) {
-      // Fallback: delete and recreate
-      console.warn('Award update endpoint not available, using delete + create fallback');
-      try {
-        await apiClient.delete(`/api/v1/admin/awards/${id}`);
-        return await adminService.addAward(awardData);
-      } catch (fallbackError) {
-        console.error('Failed to update award:', error);
-        throw error;
-      }
+      console.error('Failed to update award:', error);
+      throw error;
     }
   },
 
@@ -283,45 +268,86 @@ const adminService = {
       const response = await apiClient.put(`/api/v1/admin/certifications/${id}`, certData);
       return response.data;
     } catch (error) {
-      // Fallback: delete and recreate
-      console.warn('Certification update endpoint not available, using delete + create fallback');
-      try {
-        await apiClient.delete(`/api/v1/admin/certifications/${id}`);
-        return await adminService.addCertification(certData);
-      } catch (fallbackError) {
-        console.error('Failed to update certification:', error);
-        throw error;
-      }
-    }
-  },
-
-  // CONTACT MANAGEMENT
-  /**
-   * Update contact information
-   * @param {Object} contactData - Contact data
-   * @param {string} contactData.email - Email address
-   * @param {string} contactData.phone - Phone number
-   * @param {string} contactData.address - Address
-   * @param {Object} contactData.socialLinks - Social media links
-   * @returns {Promise}
-   */
-  updateContact: async (contactData) => {
-    try {
-      const response = await apiClient.put('/api/v1/admin/contact', contactData);
-      return response.data;
-    } catch (error) {
-      console.error('Failed to update contact:', error);
+      console.error('Failed to update certification:', error);
       throw error;
     }
   },
 
-  /**
-   * Get all contact form submissions
-   * @returns {Promise}
-   */
+  // SKILLS MANAGEMENT
+  addSkillCategory: async (categoryData) => {
+    try {
+      const response = await apiClient.post('/api/v1/admin/skill-categories', categoryData);
+      return response.data;
+    } catch (error) {
+      console.error('Failed to add skill category:', error);
+      throw error;
+    }
+  },
+
+  updateSkillCategory: async (id, categoryData) => {
+    try {
+      const response = await apiClient.put(`/api/v1/admin/skill-categories/${id}`, categoryData);
+      return response.data;
+    } catch (error) {
+      console.error('Failed to update skill category:', error);
+      throw error;
+    }
+  },
+
+  deleteSkillCategory: async (id) => {
+    try {
+      const response = await apiClient.delete(`/api/v1/admin/skill-categories/${id}`);
+      return response.status === 204;
+    } catch (error) {
+      console.error('Failed to delete skill category:', error);
+      throw error;
+    }
+  },
+
+  addSkill: async (categoryId, skillData) => {
+    try {
+      const response = await apiClient.post(`/api/v1/admin/skill-categories/${categoryId}/skills`, skillData);
+      return response.data;
+    } catch (error) {
+      console.error('Failed to add skill:', error);
+      throw error;
+    }
+  },
+
+  updateSkill: async (id, skillData) => {
+    try {
+      const response = await apiClient.put(`/api/v1/admin/skills/${id}`, skillData);
+      return response.data;
+    } catch (error) {
+      console.error('Failed to update skill:', error);
+      throw error;
+    }
+  },
+
+  deleteSkill: async (id) => {
+    try {
+      const response = await apiClient.delete(`/api/v1/admin/skills/${id}`);
+      return response.status === 204;
+    } catch (error) {
+      console.error('Failed to delete skill:', error);
+      throw error;
+    }
+  },
+
+  // CONTACT MANAGEMENT
+  updateContact: async (contactData) => {
+    try {
+      const response = await apiClient.patch('/api/v1/admin/profile/contact-info', contactData);
+      return response.data;
+    } catch (error) {
+      console.error('Failed to update contact info:', error);
+      throw error;
+    }
+  },
+
   getContactSubmissions: async () => {
     try {
-      const response = await apiClient.get('/api/v1/admin/contact/submissions');
+      const response = await apiClient.get('/api/v1/admin/contact-submissions');
       return response.data;
     } catch (error) {
       console.error('Failed to get contact submissions:', error);
@@ -329,17 +355,12 @@ const adminService = {
     }
   },
 
-  /**
-   * Delete contact form submission
-   * @param {number} submissionId - Submission ID
-   * @returns {Promise}
-   */
-  deleteContactSubmission: async (submissionId) => {
+  bulkDeleteContactSubmissions: async (ids) => {
     try {
-      const response = await apiClient.delete(`/api/v1/admin/contact/submissions/${submissionId}`);
+      const response = await apiClient.post(`/api/v1/admin/contact-submissions/bulk-delete`, ids);
       return response.status === 204;
     } catch (error) {
-      console.error('Failed to delete contact submission:', error);
+      console.error('Failed to bulk delete contact submissions:', error);
       throw error;
     }
   },

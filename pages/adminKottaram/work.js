@@ -18,12 +18,34 @@ const AdminWork = () => {
   const [formData, setFormData] = useState({
     title: "",
     description: "",
-    image: "",
-    liveUrl: "",
-    githubUrl: "",
-    technologies: [],
-    category: "",
+    thumbnailPath: "",
+    techStack: [],
+    ctaLinks: [],
   });
+
+  const AVAILABLE_TECHS = [
+    { label: "Next.js", value: "SiNextdotjs" },
+    { label: "React", value: "SiReact" },
+    { label: "Java", value: "FaJava" },
+    { label: "Spring Boot", value: "SiSpringboot" },
+    { label: "PostgreSQL", value: "SiPostgresql" },
+    { label: "Python", value: "SiPython" },
+    { label: "Azure", value: "SiMicrosoftazure" },
+    { label: "Pandas", value: "SiPandas" },
+    { label: "Google Colab", value: "SiGooglecolab" },
+    { label: "Power BI", value: "SiPowerbi" },
+    { label: "MS Teams", value: "SiMicrosoftteams" },
+    { label: "Chrome", value: "SiGooglechrome" },
+    { label: "MongoDB", value: "SiMongodb" },
+    { label: "Express", value: "SiExpress" },
+    { label: "Node.js", value: "SiNodedotjs" },
+    { label: "HTML5", value: "SiHtml5" },
+    { label: "CSS3", value: "SiCss3" },
+    { label: "PHP", value: "SiPhp" },
+    { label: "MySQL", value: "SiMysql" },
+    { label: "Keras", value: "SiKeras" },
+    { label: "GitHub Actions", value: "SiGithubactions" },
+  ];
 
   useEffect(() => {
     // Check authentication
@@ -56,11 +78,36 @@ const AdminWork = () => {
     }));
   };
 
-  const handleTechnologiesChange = (value) => {
-    const technologies = value.split(",").map((tech) => tech.trim()).filter(Boolean);
+  const toggleTech = (techValue) => {
+    setFormData((prev) => {
+      const current = prev.techStack || [];
+      if (current.includes(techValue)) {
+        return { ...prev, techStack: current.filter((t) => t !== techValue) };
+      } else {
+        return { ...prev, techStack: [...current, techValue] };
+      }
+    });
+  };
+
+  const addCtaLink = () => {
     setFormData((prev) => ({
       ...prev,
-      technologies,
+      ctaLinks: [...(prev.ctaLinks || []), { label: "", url: "", iconName: "FaGithub" }],
+    }));
+  };
+
+  const updateCtaLink = (index, field, value) => {
+    setFormData((prev) => {
+      const links = [...prev.ctaLinks];
+      links[index] = { ...links[index], [field]: value };
+      return { ...prev, ctaLinks: links };
+    });
+  };
+
+  const removeCtaLink = (index) => {
+    setFormData((prev) => ({
+      ...prev,
+      ctaLinks: prev.ctaLinks.filter((_, i) => i !== index),
     }));
   };
 
@@ -68,11 +115,9 @@ const AdminWork = () => {
     setFormData({
       title: "",
       description: "",
-      image: "",
-      liveUrl: "",
-      githubUrl: "",
-      technologies: [],
-      category: "",
+      thumbnailPath: "",
+      techStack: [],
+      ctaLinks: [],
     });
     setEditingProject(null);
     setShowForm(false);
@@ -85,13 +130,11 @@ const AdminWork = () => {
 
   const handleEditProject = (project) => {
     setFormData({
-      title: project.title,
-      description: project.description,
-      image: project.image,
-      liveUrl: project.liveUrl || "",
-      githubUrl: project.githubUrl || "",
-      technologies: project.technologies || [],
-      category: project.category || "",
+      title: project.title || "",
+      description: project.description || "",
+      thumbnailPath: project.thumbnailPath || project.path || "",
+      techStack: project.techStack || [],
+      ctaLinks: project.ctaLinks || [],
     });
     setEditingProject(project);
     setShowForm(true);
@@ -102,11 +145,16 @@ const AdminWork = () => {
     setMessage({ type: "", text: "" });
 
     try {
+      const payload = {
+        ...formData,
+        thumbnailPath: formData.thumbnailPath || "/thumb1.jpg"
+      };
+
       if (editingProject) {
-        await adminService.updateProject(editingProject.id, formData);
+        await adminService.updateProject(editingProject.id, payload);
         setMessage({ type: "success", text: "Project updated successfully!" });
       } else {
-        await adminService.createProject(formData);
+        await adminService.createProject(payload);
         setMessage({ type: "success", text: "Project created successfully!" });
       }
 
@@ -245,7 +293,7 @@ const AdminWork = () => {
                 </h3>
                 <button
                   onClick={resetForm}
-                  className="text-white/70 hover:text-white transition-colors"
+                  className="text-white/70 hover:text-white transition-colors z-500"
                 >
                   ✕
                 </button>
@@ -295,105 +343,94 @@ const AdminWork = () => {
                 {/* Image URL Field */}
                 <div className="flex flex-col">
                   <label
-                    htmlFor="image"
+                    htmlFor="thumbnailPath"
                     className="text-white/80 text-sm mb-2 font-medium"
                   >
-                    Image URL *
+                    Image URL (Optional)
                   </label>
                   <input
                     type="url"
-                    id="image"
-                    name="image"
-                    value={formData.image}
+                    id="thumbnailPath"
+                    name="thumbnailPath"
+                    value={formData.thumbnailPath}
                     onChange={handleInputChange}
                     className="bg-black/40 border border-white/20 rounded-lg px-4 py-3 text-white placeholder-white/50 focus:outline-none focus:border-accent transition-colors"
                     placeholder="https://cloudinary.com/project-image.jpg"
-                    required
-                  />
-                </div>
-
-                {/* Live URL Field */}
-                <div className="flex flex-col">
-                  <label
-                    htmlFor="liveUrl"
-                    className="text-white/80 text-sm mb-2 font-medium"
-                  >
-                    Live URL
-                  </label>
-                  <input
-                    type="url"
-                    id="liveUrl"
-                    name="liveUrl"
-                    value={formData.liveUrl}
-                    onChange={handleInputChange}
-                    className="bg-black/40 border border-white/20 rounded-lg px-4 py-3 text-white placeholder-white/50 focus:outline-none focus:border-accent transition-colors"
-                    placeholder="https://your-project.com"
-                  />
-                </div>
-
-                {/* GitHub URL Field */}
-                <div className="flex flex-col">
-                  <label
-                    htmlFor="githubUrl"
-                    className="text-white/80 text-sm mb-2 font-medium"
-                  >
-                    GitHub URL
-                  </label>
-                  <input
-                    type="url"
-                    id="githubUrl"
-                    name="githubUrl"
-                    value={formData.githubUrl}
-                    onChange={handleInputChange}
-                    className="bg-black/40 border border-white/20 rounded-lg px-4 py-3 text-white placeholder-white/50 focus:outline-none focus:border-accent transition-colors"
-                    placeholder="https://github.com/username/project"
-                  />
-                </div>
-
-                {/* Technologies Field */}
-                <div className="flex flex-col">
-                  <label
-                    htmlFor="technologies"
-                    className="text-white/80 text-sm mb-2 font-medium"
-                  >
-                    Technologies *
-                  </label>
-                  <input
-                    type="text"
-                    id="technologies"
-                    value={formData.technologies.join(", ")}
-                    onChange={(e) => handleTechnologiesChange(e.target.value)}
-                    className="bg-black/40 border border-white/20 rounded-lg px-4 py-3 text-white placeholder-white/50 focus:outline-none focus:border-accent transition-colors"
-                    placeholder="React, Node.js, MongoDB"
-                    required
                   />
                   <div className="text-white/40 text-xs mt-1">
-                    Separate technologies with commas
+                    Leave blank to use a default image.
                   </div>
                 </div>
 
-                {/* Category Field */}
+                {/* Tech Stack Field - UI Chip Grid */}
                 <div className="flex flex-col">
-                  <label
-                    htmlFor="category"
-                    className="text-white/80 text-sm mb-2 font-medium"
-                  >
-                    Category
+                  <label className="text-white/80 text-sm mb-2 font-medium">
+                    Technologies
                   </label>
-                  <select
-                    id="category"
-                    name="category"
-                    value={formData.category}
-                    onChange={handleInputChange}
-                    className="bg-black/40 border border-white/20 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-accent transition-colors"
-                  >
-                    <option value="">Select category</option>
-                    <option value="web">Web Development</option>
-                    <option value="mobile">Mobile App</option>
-                    <option value="desktop">Desktop App</option>
-                    <option value="api">API/Backend</option>
-                    <option value="other">Other</option>
-                  </select>
+                  <div className="flex flex-wrap gap-2 bg-black/40 border border-white/20 rounded-lg p-4">
+                    {AVAILABLE_TECHS.map((tech) => {
+                      const isSelected = formData.techStack?.includes(tech.value);
+                      return (
+                        <button
+                          key={tech.value}
+                          type="button"
+                          onClick={() => toggleTech(tech.value)}
+                          className={`px-3 py-1 text-xs rounded-full border transition-colors ${
+                            isSelected
+                              ? "bg-accent text-primary border-accent"
+                              : "bg-transparent text-white border-white/30 hover:border-white/60"
+                          }`}
+                        >
+                          {tech.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* CTA Links Builder */}
+                <div className="flex flex-col">
+                  <label className="text-white/80 text-sm mb-2 font-medium flex justify-between items-center">
+                    Call-to-Action Links (Optional)
+                    <button
+                      type="button"
+                      onClick={addCtaLink}
+                      className="text-accent hover:text-white transition-colors"
+                    >
+                      <FaPlus className="text-sm" />
+                    </button>
+                  </label>
+                  
+                  {formData.ctaLinks?.map((link, index) => (
+                    <div key={index} className="flex gap-2 mb-2 items-start bg-black/20 p-2 rounded border border-white/10">
+                      <input
+                        type="text"
+                        value={link.label || link.title || ""}
+                        onChange={(e) => updateCtaLink(index, "label", e.target.value)}
+                        className="bg-black/40 border border-white/20 rounded px-3 py-2 text-white text-sm w-1/3"
+                        placeholder="Link Title (e.g. View Code)"
+                      />
+                      <input
+                        type="url"
+                        value={link.url || ""}
+                        onChange={(e) => updateCtaLink(index, "url", e.target.value)}
+                        className="bg-black/40 border border-white/20 rounded px-3 py-2 text-white text-sm flex-1"
+                        placeholder="URL"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => removeCtaLink(index)}
+                        className="p-2 text-red-500 hover:text-red-400 mt-1"
+                      >
+                        <FaTrash className="text-xs" />
+                      </button>
+                    </div>
+                  ))}
+                  {(!formData.ctaLinks || formData.ctaLinks.length === 0) && (
+                    <div className="text-white/40 text-xs italic bg-black/20 p-3 rounded">
+                      No links added. Click the + icon to add Live Demo or Source Code links.
+                    </div>
+                  )}
                 </div>
 
                 {/* Save Button */}
